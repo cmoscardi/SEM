@@ -109,12 +109,12 @@ def crop_pdf(path, output_dir, zoom_x = 2.0, zoom_y = 2.0, rotate=0, expand=10, 
         chunks = json.load(f)['chunks']
     doc = fitz.open(path[0])
     pdf_name = os.path.splitext(os.path.basename(path[0]))[0]
-    assert doc.pageCount == 1, print(pdf_name, ' has more than 1 page!')
+    assert doc.page_count == 1, print(pdf_name, ' has more than 1 page!')
 
     # transfer pdf to img
-    trans = fitz.Matrix(zoom_x, zoom_y).preRotate(rotate)
-    pm = doc[0].getPixmap(matrix=trans, alpha=False)
-    pm.writePNG(os.path.join(output_dir, '%s.png' % pdf_name))
+    trans = fitz.Matrix(zoom_x, zoom_y).prerotate(rotate)
+    pm = doc[0].get_pixmap(matrix=trans, alpha=False)
+    pm.save(os.path.join(output_dir, '%s.png' % pdf_name))
 
     # crop table region
     pdf_img = cv2.imread(os.path.join(output_dir, '%s.png' % pdf_name))
