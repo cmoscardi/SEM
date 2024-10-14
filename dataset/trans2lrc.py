@@ -2,8 +2,8 @@ import os
 import glob
 import tqdm
 import numpy as np
-from utlis.list_record_cache import ListRecordCacher, merge_record_file
-from utlis.utlis import get_sub_paths, crop_pdf, crop_cells, visualize_cell, match_cells
+from utils.list_record_cache import ListRecordCacher, merge_record_file
+from utils.utils import get_sub_paths, crop_pdf, crop_cells, visualize_cell, match_cells
 
 
 def parse_args():
@@ -18,18 +18,8 @@ def parse_args():
 
 def single_process(paths, dst_dir):
 
-    output_pdf_dir = os.path.join(dst_dir, 'pdf')
-    if not os.path.exists(output_pdf_dir):
-        os.makedirs(output_pdf_dir)
-    output_img_dir = os.path.join(dst_dir, 'img')
-    if not os.path.exists(output_img_dir):
-        os.makedirs(output_img_dir)
-    output_visual_dir = os.path.join(dst_dir, 'visual')
-    if not os.path.exists(output_visual_dir):
-        os.makedirs(output_visual_dir)
-    output_error_dir = os.path.join(dst_dir, 'error')
-    if not os.path.exists(output_error_dir):
-        os.makedirs(output_error_dir)
+    _make_dirs(dst_dir)
+
 
     cacher = ListRecordCacher(os.path.join(dst_dir, 'table.lrc'))
 
@@ -89,10 +79,25 @@ def _worker(worker_idx, num_workers, paths, dst_dir, result_queue):
     result_queue.put((correct_count, error_count, error_paths))
 
 
+def _make_dirs(dst_dir):
+    output_pdf_dir = os.path.join(dst_dir, 'pdf')
+    if not os.path.exists(output_pdf_dir):
+        os.makedirs(output_pdf_dir)
+    output_img_dir = os.path.join(dst_dir, 'img')
+    if not os.path.exists(output_img_dir):
+        os.makedirs(output_img_dir)
+    output_visual_dir = os.path.join(dst_dir, 'visual')
+    if not os.path.exists(output_visual_dir):
+        os.makedirs(output_visual_dir)
+    output_error_dir = os.path.join(dst_dir, 'error')
+    if not os.path.exists(output_error_dir):
+        os.makedirs(output_error_dir)
+
 def multi_process(path, dst_dir, num_workers):
     import multiprocessing
     manager = multiprocessing.Manager()
     result_queue = manager.Queue()
+    _make_dirs(dst_dir)
 
     workers = list()
     for worker_idx in range(num_workers):
@@ -126,6 +131,7 @@ def multi_process(path, dst_dir, num_workers):
     # merge each worker lrc
     cache_paths = glob.glob(os.path.join(dst_dir, '*.lrc'))
     merge_record_file(cache_paths, os.path.join(dst_dir, 'table.lrc'))
+
     for cache_path in cache_paths:
         os.remove(cache_path)
 
